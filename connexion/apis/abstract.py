@@ -40,8 +40,8 @@ class AbstractAPI(object):
     def __init__(self, specification, base_path=None, arguments=None,
                  validate_responses=False, strict_validation=False, resolver=None,
                  auth_all_paths=False, debug=False, resolver_error_handler=None,
-                 validator_map=None, pythonic_params=False, options=None, pass_context_arg_name=None,
-                 **old_style_options):
+                 validator_map=None, pythonic_params=False, options=None,
+                 pass_context_arg_name=None):
         """
         :type specification: pathlib.Path | dict
         :type base_path: str | None
@@ -71,14 +71,7 @@ class AbstractAPI(object):
         self.validator_map = validator_map
         self.resolver_error_handler = resolver_error_handler
 
-        self.options = ConnexionOptions(old_style_options)
-        # options is added last to preserve the highest priority
-        self.options = self.options.extend(options)
-
-        # TODO: Remove this in later versions (Current version is 1.1.9)
-        if base_path is None and 'base_url' in old_style_options:
-            base_path = old_style_options['base_url']
-            logger.warning("Parameter base_url should be no longer used. Use base_path instead.")
+        self.options = ConnexionOptions(options)
 
         logger.debug('Loading specification: %s', specification,
                      extra={'swagger_yaml': specification,
