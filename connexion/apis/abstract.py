@@ -64,8 +64,6 @@ class AbstractAPI(object):
         :param pass_context_arg_name: If not None URL request handling functions with an argument matching this name
         will be passed the framework's request context.
         :type pass_context_arg_name: str | None
-        :param old_style_options: Old style options support for backward compatibility. Preference is
-                                  what is defined in `options` parameter.
         """
         self.debug = debug
         self.validator_map = validator_map
