@@ -19,27 +19,9 @@ logger = logging.getLogger('connexion.decorators.validation')
 TYPE_MAP = {
     'integer': int,
     'number': float,
-    'boolean': boolean,
-    'object': dict
+    'string': str,
+    'boolean': boolean
 }
-
-
-class PropertyValidationError(Exception):
-    def __init__(self, parameter_child, parameter_parent):
-        """
-        Exception raise when property validation fails
-
-        :type schema_type: str
-        :type parameter_type: str
-        :type parameter_name: str
-        :return:
-        """
-        self.parameter_child = parameter_child
-        self.parameter_parent = parameter_parent
-
-    def __str__(self):
-        msg = "Unexpected property '{parameter_child}' in parameter '{parameter_parent}'"
-        return msg.format(**vars(self))
 
 
 class TypeValidationError(Exception):
@@ -83,19 +65,15 @@ def coerce_type(param, value, parameter_type, parameter_name=None):
             converted_params.append(converted)
         return converted_params
     elif param_type == 'object':
-        converted_params = {}
-        if 'properties' in param_schema and param_schema['properties']:
-            for k, v in value.items():
-                try:
-                    converted_params[k] = make_type(v, param_schema['properties'][k]['type'])
-                except (ValueError, TypeError):
-                    converted_params[k] = v
-                except KeyError:
-                    if not param_schema.get("additionalProperties", True):
-                        raise PropertyValidationError(k, parameter_name)
-            return converted_params
-        else:
-            return value
+        if param_schema.get('properties'):
+            def cast_leaves(d, schema):
+                if type(d) is not dict:
+                    return make_type(d, schema['type'])
+                for k, v in d.items():
+                    d[k] = cast_leaves(v, schema['properties'][k])
+                return d
+            return cast_leaves(value, param_schema)
+        return value
     else:
         try:
             return make_type(value, param_type)
@@ -192,7 +170,7 @@ class RequestBodyValidator(object):
                         if k in data:
                             try:
                                 data[k] = coerce_type(param_defn, data[k], 'requestBody', k)
-                            except (TypeValidationError, PropertyValidationError) as e:
+                            except TypeValidationError as e:
                                 errs += [str(e)]
                                 print(errs)
                     if errs:
@@ -269,7 +247,7 @@ class ParameterValidator(object):
 
             try:
                 converted_value = coerce_type(param, value, parameter_type, param_name)
-            except (TypeValidationError, PropertyValidationError) as e:
+            except TypeValidationError as e:
                 return str(e)
 
             param = copy.deepcopy(param)

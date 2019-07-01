@@ -120,10 +120,10 @@ def test_exploded_deep_object_param_endpoint_openapi(simple_openapi_app):
 def test_nested_exploded_deep_object_param_endpoint_openapi(simple_openapi_app):
     app_client = simple_openapi_app.app.test_client()
 
-    response = app_client.get('/v1.0/nested-exploded-deep-object-param?id[foo][foo2]=bar&id[foofoo]=barbar')  # type: flask.Response
+    response = app_client.get('/v1.0/nested-exploded-deep-object-param?id[foo][foo2]=100&id[foofoo]=barbar')  # type: flask.Response
     assert response.status_code == 200
     response_data = json.loads(response.data.decode('utf-8', 'replace'))
-    assert response_data == {'foo': {'foo2': 'bar'}, 'foofoo': 'barbar'}
+    assert response_data == {'foo': {'foo2': 100}, 'foofoo': 'barbar'}
 
 
 def test_redirect_endpoint(simple_app):
